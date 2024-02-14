@@ -1,5 +1,4 @@
 const Product = require('../models/product');
-const Cart = require('../models/cart');
 
 exports.getProducts = (req, res, next) => {
   Product.findAll()
@@ -18,22 +17,18 @@ exports.getProducts = (req, res, next) => {
 exports.getProduct = (req, res, next) => {
   const prodId = req.params.productId;
   // Product.findAll({ where: { id: prodId } })
-  //   .then((products) => {
+  //   .then(products => {
   //     res.render('shop/product-detail', {
   //       product: products[0],
   //       pageTitle: products[0].title,
-  //       path: '/products',
+  //       path: '/products'
   //     });
   //   })
-  //   .catch((err) => {
-  //     console.log(err);
-  //   });
-
-  // 배열이 아닌 형태로 받아져야 하는데, 배열을 없애면 render 자체가 안됨ㅠ
-  Product.findByPk(prodId)
-    .then(([product]) => {
+  //   .catch(err => console.log(err));
+  Product.findById(prodId)
+    .then((product) => {
       res.render('shop/product-detail', {
-        product: product[0],
+        product: product,
         pageTitle: product.title,
         path: '/products',
       });
@@ -68,18 +63,15 @@ exports.getCart = (req, res, next) => {
             products: products,
           });
         })
-        .catch((err) => {
-          console.log(err);
-        });
+        .catch((err) => console.log(err));
     })
-    .catch((err) => {
-      console.log(err);
-    });
+    .catch((err) => console.log(err));
 };
 
 exports.postCart = (req, res, next) => {
   const prodId = req.body.productId;
   let fetchedCart;
+  let newQuantity = 1;
   req.user
     .getCart()
     .then((cart) => {
@@ -89,36 +81,71 @@ exports.postCart = (req, res, next) => {
     .then((products) => {
       let product;
       if (products.length > 0) {
-        const product = products[0];
+        product = products[0];
       }
-      let newQuantity = 1;
+
       if (product) {
-        // ...
+        const oldQuantity = product.cartItem.quantity;
+        newQuantity = oldQuantity + 1;
+        return product;
       }
-      return Product.findByPk(prodId)
-        .then((product) => {
-          return fetchedCart.addProduct(product, {
-            through: { quantity: newQuantity },
-          });
+      return Product.findByPk(prodId);
+    })
+    .then((product) => {
+      return fetchedCart.addProduct(product, {
+        through: { quantity: newQuantity },
+      });
+    })
+    .then(() => {
+      res.redirect('/cart');
+    })
+    .catch((err) => console.log(err));
+};
+
+exports.postCartDeleteProduct = (req, res, next) => {
+  const prodId = req.body.productId;
+  req.user
+    .getCart()
+    .then((cart) => {
+      return cart.getProducts({ where: { id: prodId } });
+    })
+    .then((products) => {
+      const product = products[0];
+      return product.cartItem.destroy();
+    })
+    .then((result) => {
+      res.redirect('/cart');
+    })
+    .catch((err) => console.log(err));
+};
+
+exports.postOrder = (req, res, next) => {
+  req.user
+    .getCart()
+    .then((cart) => {
+      return cart.getProducts();
+    })
+    .then((products) => {
+      return req.user
+        .createOrder()
+        .then((order) => {
+          return order.addProduct(
+            products.map((product) => {
+              product.orderItem = { quantity: product.cartItem.quantity };
+              return product;
+            })
+          );
         })
         .catch((err) => {
           console.log(err);
         });
     })
-    .then(() => {
-      res.redirect('/cart');
+    .then((result) => {
+      res.redirect('/orders');
     })
     .catch((err) => {
       console.log(err);
     });
-};
-
-exports.postCartDeleteProduct = (req, res, next) => {
-  const prodId = req.body.productId;
-  Product.findByPk(prodId, (product) => {
-    Cart.deleteProduct(prodId, product.price);
-    res.redirect('/cart');
-  });
 };
 
 exports.getOrders = (req, res, next) => {
