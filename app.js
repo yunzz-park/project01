@@ -4,13 +4,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const errorController = require('./controllers/error');
-const sequelize = require('./util/database');
-const Product = require('./models/product');
+const mongoConnect = require('./util/database').mongoConnect;
 const User = require('./models/user');
-const Cart = require('./models/cart');
-const CartItem = require('./models/cart-item');
-const Order = require('./models/order');
-const OrderItem = require('./models/order-item');
 
 const app = express();
 
@@ -26,9 +21,9 @@ app.use(express.static(path.join(__dirname, 'public'))); // static은 파일 시
 // 이 부분의 app.use는 미들웨어를 등록할 뿐!
 // app.listen을 통해 서버를 성공적으로 시작했을 때만 접근 가능!
 app.use((req, res, next) => {
-  User.findByPk(1)
+  User.findById('65d423374c0671ecf9c023b5') // findById를 사용해야한다.
     .then((user) => {
-      req.user = user;
+      req.user = new User(user.name, user.email, user.cart, user._id);
       next();
     })
     .catch((err) => {
@@ -41,6 +36,21 @@ app.use(shopRoutes);
 
 app.use(errorController.get404);
 
+mongoConnect(() => {
+  app.listen(3001);
+});
+
+/* mysql의 sequelize
+const sequelize = require('./util/database');
+const Product = require('./models/product');
+const User = require('./models/user');
+const Cart = require('./models/cart');
+const CartItem = require('./models/cart-item');
+const Order = require('./models/order');
+const OrderItem = require('./models/order-item');
+ */
+
+/* mysql 사용한 부분
 Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
 User.hasMany(Product);
 User.hasOne(Cart);
@@ -74,3 +84,4 @@ sequelize
   .catch((err) => {
     console.log(err);
   });
+ */

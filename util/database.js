@@ -1,9 +1,39 @@
-const Sequelize = require('sequelize');
+const mongodb = require('mongodb');
+const MongoClient = mongodb.MongoClient;
 
-// database이름, username, pw,
-const sequelize = new Sequelize('node-complete', 'root', '0000', {
-  dialect: 'mysql',
-  host: 'localhost',
-});
+let _db;
 
-module.exports = sequelize;
+const mongoConnect = (callback) => {
+  MongoClient.connect(
+    'mongodb+srv://yoon:qsim0000@cluster0.nzjxiwb.mongodb.net/shop?retryWrites=true&w=majority'
+  )
+    .then((client) => {
+      console.log('Connected!');
+      _db = client.db();
+      callback();
+    })
+    .catch((err) => {
+      console.log(err);
+      throw err;
+    });
+};
+
+const getDb = () => {
+  if (_db) {
+    return _db;
+  }
+  throw 'No database found!';
+};
+
+exports.mongoConnect = mongoConnect;
+exports.getDb = getDb;
+
+// const Sequelize = require('sequelize');
+
+// // database이름, username, pw,
+// const sequelize = new Sequelize('node-complete', 'root', '0000', {
+//   dialect: 'mysql',
+//   host: 'localhost',
+// });
+
+// module.exports = sequelize;
