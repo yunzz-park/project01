@@ -1,13 +1,21 @@
 const mongodb = require('mongodb');
 const getDb = require('../util/database').getDb;
 
+/*
+ObjectId에 미들라인이 붙어서 찾아본 것! 아직 정확한 코드입력값을 찾지 못했다. 
+// 이전 코드
+let id = new ObjectId(someNumber);
+// 수정된 코드
+let id = new ObjectId(someNumber.toString());
+ */
+
 class Product {
   constructor(title, price, description, imageUrl, id, userId) {
     this.title = title;
     this.price = price;
     this.description = description;
     this.imageUrl = imageUrl;
-    this._id = id ? new mongodb.ObjectId(id.toString()) : null;
+    this._id = id ? new mongodb.ObjectId(id) : null;
     this.userId = userId;
   }
 

@@ -29,7 +29,7 @@ class User {
       updatedCartItems[cartProductIndex].quantity = newQuantity;
     } else {
       updatedCartItems.push({
-        productId: new ObjectId(product._id),
+        productId: new Object(product._id),
         quantity: newQuantity,
       });
     }
@@ -48,7 +48,7 @@ class User {
   getCart() {
     const db = getDb();
     const productIds = this.cart.items.map((i) => {
-      return i.prouductId;
+      return i.productId;
     });
     return db
       .collection('products')
@@ -63,6 +63,35 @@ class User {
             }).quantity,
           };
         });
+      });
+  }
+
+  deleteItemFromCart(productId) {
+    const updatedCartItems = this.cart.items.filter((item) => {
+      return item.productId.toString() !== productId.toString();
+    });
+    const db = getDb();
+    return db
+      .collection('users')
+      .updateOne(
+        { _id: new ObjectId(this._id) },
+        { $set: { cart: { items: updatedCartItems } } }
+      );
+  }
+
+  addOrder() {
+    const db = getDb();
+    return db
+      .collection('orders')
+      .insertOne(this.cart)
+      .then((result) => {
+        this.cart = { items: [] }; // this.cart는 사용자 장바구니
+        return db
+          .collection('users')
+          .updateOne(
+            { _id: new ObjectId(this._id) },
+            { $set: { cart: { items: [] } } }
+          );
       });
   }
 
