@@ -37,9 +37,7 @@ app.use(shopRoutes);
 app.use(errorController.get404);
 
 mongoose
-  .connect(
-    'mongodb+srv://yoon:qsim0000@cluster0.nzjxiwb.mongodb.net/shop?retryWrites=true&w=majority&appName=Cluster0'
-  )
+  .connect('')
   .then((result) => {
     app.listen(3001);
   })
