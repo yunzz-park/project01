@@ -2,10 +2,10 @@
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 
 const errorController = require('./controllers/error');
-const mongoConnect = require('./util/database').mongoConnect;
-const User = require('./models/user');
+// const User = require('./models/user');
 
 const app = express();
 
@@ -20,25 +20,36 @@ app.use(express.static(path.join(__dirname, 'public'))); // static은 파일 시
 
 // 이 부분의 app.use는 미들웨어를 등록할 뿐!
 // app.listen을 통해 서버를 성공적으로 시작했을 때만 접근 가능!
-app.use((req, res, next) => {
-  User.findById('65d423374c0671ecf9c023b5') // findById를 사용해야한다.
-    .then((user) => {
-      req.user = new User(user.name, user.email, user.cart, user._id);
-      next();
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-});
+// app.use((req, res, next) => {
+//   User.findById('65d423374c0671ecf9c023b5') // findById를 사용해야한다.
+//     .then((user) => {
+//       req.user = new User(user.name, user.email, user.cart, user._id);
+//       next();
+//     })
+//     .catch((err) => {
+//       console.log(err);
+//     });
+// });
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 
 app.use(errorController.get404);
 
-mongoConnect(() => {
-  app.listen(3001);
-});
+mongoose
+  .connect(
+    'mongodb+srv://yoon:qsim0000@cluster0.nzjxiwb.mongodb.net/shop?retryWrites=true&w=majority&appName=Cluster0'
+  )
+  .then((result) => {
+    app.listen(3001);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+// mongoConnect(() => {
+//   app.listen(3001);
+// });
 
 /* mysql의 sequelize
 const sequelize = require('./util/database');
