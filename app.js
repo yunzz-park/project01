@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
 const errorController = require('./controllers/error');
-// const User = require('./models/user');
+const User = require('./models/user');
 
 const app = express();
 
@@ -20,16 +20,16 @@ app.use(express.static(path.join(__dirname, 'public'))); // static은 파일 시
 
 // 이 부분의 app.use는 미들웨어를 등록할 뿐!
 // app.listen을 통해 서버를 성공적으로 시작했을 때만 접근 가능!
-// app.use((req, res, next) => {
-//   User.findById('65d423374c0671ecf9c023b5') // findById를 사용해야한다.
-//     .then((user) => {
-//       req.user = new User(user.name, user.email, user.cart, user._id);
-//       next();
-//     })
-//     .catch((err) => {
-//       console.log(err);
-//     });
-// });
+app.use((req, res, next) => {
+  User.findById('65deaca176938b843fd03dc4') // findById를 사용해야한다.
+    .then((user) => {
+      req.user = user;
+      next();
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
@@ -39,6 +39,18 @@ app.use(errorController.get404);
 mongoose
   .connect('')
   .then((result) => {
+    User.findOne().then((user) => {
+      if (!user) {
+        const user = new User({
+          name: 'Yoon',
+          email: 'yoon@test.com',
+          cart: {
+            items: [],
+          },
+        });
+        user.save();
+      }
+    });
     app.listen(3001);
   })
   .catch((err) => {
