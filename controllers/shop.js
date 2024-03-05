@@ -45,7 +45,8 @@ exports.getIndex = (req, res, next) => {
 
 exports.getCart = (req, res, next) => {
   req.user
-    .populate('cart.items.productId') // populate다음 then이 작동하지 않으면 .execPopulate()를 추가하면 된다. 그러나 나는 추가했더니 오류가 발생하였다.
+    .populate('cart.items.productId')
+    // .execPopulate()
     .then((user) => {
       const products = user.cart.items;
       res.render('shop/cart', {
@@ -81,12 +82,11 @@ exports.postCartDeleteProduct = (req, res, next) => {
 
 exports.postOrder = (req, res, next) => {
   req.user
-    .populate('cart.items.productId') // populate다음 then이 작동하지 않으면 .execPopulate()를 추가하면 된다. 그러나 나는 추가했더니 오류가 발생하였다.
+    .populate('cart.items.productId')
     // .execPopulate()
     .then((user) => {
-      console.log(user.cart.items);
       const products = user.cart.items.map((i) => {
-        return { quantity: i.quantity, product: i.productId };
+        return { quantity: i.quantity, product: { ...i.productId._doc } };
       });
       const order = new Order({
         user: {

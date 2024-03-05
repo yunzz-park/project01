@@ -21,7 +21,7 @@ app.use(express.static(path.join(__dirname, 'public'))); // static은 파일 시
 // 이 부분의 app.use는 미들웨어를 등록할 뿐!
 // app.listen을 통해 서버를 성공적으로 시작했을 때만 접근 가능!
 app.use((req, res, next) => {
-  User.findById('65deaca176938b843fd03dc4') // findById를 사용해야한다.
+  User.findById('65e5207f6baa92277a6e5eac') // findById를 사용해야한다.
     .then((user) => {
       req.user = user;
       next();
@@ -37,7 +37,7 @@ app.use(shopRoutes);
 app.use(errorController.get404);
 
 mongoose
-  .connect('')
+  .connect('mongodb cluster 입력')
   .then((result) => {
     User.findOne().then((user) => {
       if (!user) {

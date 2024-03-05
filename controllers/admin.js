@@ -50,9 +50,7 @@ exports.getEditProduct = (req, res, next) => {
         product: product,
       });
     })
-    .catch((err) => {
-      console.log(err);
-    });
+    .catch((err) => console.log(err));
 };
 
 exports.postEditProduct = (req, res, next) => {
@@ -61,6 +59,7 @@ exports.postEditProduct = (req, res, next) => {
   const updatedPrice = req.body.price;
   const updatedImageUrl = req.body.imageUrl;
   const updatedDesc = req.body.description;
+
   Product.findById(prodId)
     .then((product) => {
       product.title = updatedTitle;
@@ -73,9 +72,7 @@ exports.postEditProduct = (req, res, next) => {
       console.log('UPDATED PRODUCT!');
       res.redirect('/admin/products');
     })
-    .catch((err) => {
-      console.log(err);
-    });
+    .catch((err) => console.log(err));
 };
 
 exports.getProducts = (req, res, next) => {
@@ -90,9 +87,7 @@ exports.getProducts = (req, res, next) => {
         path: '/admin/products',
       });
     })
-    .catch((err) => {
-      console.log(err);
-    });
+    .catch((err) => console.log(err));
 };
 
 exports.postDeleteProduct = (req, res, next) => {
@@ -102,7 +97,5 @@ exports.postDeleteProduct = (req, res, next) => {
       console.log('DESTROYED PRODUCT');
       res.redirect('/admin/products');
     })
-    .catch((err) => {
-      console.log(err);
-    });
+    .catch((err) => console.log(err));
 };
