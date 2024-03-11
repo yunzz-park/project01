@@ -1,13 +1,19 @@
 // main
 const path = require('path');
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const session = require('express-session');
+const MongoDBStore = require('connect-mongodb-session')(session);
 
 const errorController = require('./controllers/error');
 const User = require('./models/user');
 
+const MONGODB_URI = '';
+
 const app = express();
+const store = new MongoDBStore({ uri: MONGODB_URI, collection: 'sessions' });
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
@@ -18,18 +24,46 @@ const authRoutes = require('./routes/auth');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public'))); // static은 파일 시스템으로 직접 포워딩 된다는 뜻
+app.use(
+  session({
+    secret: 'my secret',
+    resave: false,
+    saveUninitialized: false,
+    store: store,
+  })
+);
 
+// app.use((req, res, next) => {
+//   User.findById(req.session.user._id)
+//     .then((user) => {
+//       req.user = user;
+//       next();
+//     })
+//     .catch((err) => console.log(err));
+// });
 // 이 부분의 app.use는 미들웨어를 등록할 뿐!
 // app.listen을 통해 서버를 성공적으로 시작했을 때만 접근 가능!
+// app.use((req, res, next) => {
+//   User.findById('65e5207f6baa92277a6e5eac') // findById를 사용해야한다.
+//     .then((user) => {
+//       req.user = user;
+//       next();
+//     })
+//     .catch((err) => {
+//       console.log(err);
+//     });
+// });
+
 app.use((req, res, next) => {
-  User.findById('65e5207f6baa92277a6e5eac') // findById를 사용해야한다.
+  if (!req.session.user) {
+    return next();
+  }
+  User.findById(req.session.user._id)
     .then((user) => {
       req.user = user;
       next();
     })
-    .catch((err) => {
-      console.log(err);
-    });
+    .catch((err) => console.log(err));
 });
 
 app.use('/admin', adminRoutes);
@@ -39,20 +73,8 @@ app.use(authRoutes);
 app.use(errorController.get404);
 
 mongoose
-  .connect('mongodb 개인코드')
+  .connect(MONGODB_URI)
   .then((result) => {
-    User.findOne().then((user) => {
-      if (!user) {
-        const user = new User({
-          name: 'Yoon',
-          email: 'yoon@test.com',
-          cart: {
-            items: [],
-          },
-        });
-        user.save();
-      }
-    });
     app.listen(3001);
   })
   .catch((err) => {
